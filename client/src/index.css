@@ -1,0 +1,33 @@
+/* index.css */
+body {
+    background-color: black; /* Set background to black */
+    margin: 0;
+    padding: 0;
+    color: white; /* Text color */
+    font-family: Arial, sans-serif;
+    height: 100vh; /* Ensure body covers full height */
+}
+
+.app-container {
+    min-height: 100vh; /* Full height */
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    padding: 20px;
+}
+
+form-container {
+    border: 2px solid #ff6700; /* Border color */
+    padding: 20px;
+    width: 300px;
+    margin: auto;
+    background-color: #333; /* Form background */
+    border-radius: 10px;
+    color: white;
+}
+
+h2 {
+    color: #ff6700; /* Title color */
+}

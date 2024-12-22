@@ -1,0 +1,34 @@
+/* Navbar Styles */
+.nav-bar {
+    background-color: black;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: flex-end;
+    box-shadow: 0 2px 8px #ff6700; /* Orange shadow below the navbar */
+    position: relative;
+}
+
+.navlinks {
+    display: flex;
+}
+
+.navlink {
+    color: white;
+    margin-left: 15px;
+    padding: 10px 20px;
+    border: 2px solid #ff6700;
+    border-radius: 5px;
+    text-decoration: none;
+    background-color: transparent;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 5px #ff6700;
+}
+
+/* Hover effects for the buttons */
+.navlink:hover {
+    background-color: #ff6700;
+    color: black;
+    transform: scale(1.05);
+    box-shadow: 0 0 10px #ff6700;
+}
