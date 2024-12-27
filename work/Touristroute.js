@@ -104,8 +104,7 @@ router.post('/tourist-register', async (req, res) => {
 
             // Log the successful registration
             console.log('Tourist Registration Successful:', newTourist);
-            console.log('Guide Message:', guideMessage);
-
+            
 
             // Send response with guide information
             return res.status(201).json({
