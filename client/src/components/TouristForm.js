@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import './form.css'; // Ensure to create or update this CSS file for proper styling
+import './form.css';
 
 const TouristForm = () => {
     const navigate = useNavigate();
@@ -19,109 +19,80 @@ const TouristForm = () => {
     });
     const [errors, setErrors] = useState({});
 
-    const handleChange = (e) => {
-        const { name, value, type, checked } = e.target;
-        
-        if (type === 'checkbox') {
-            setFormData(prevData => {
-                const currentArray = prevData[name] || [];
-                if (checked) {
-                    return { ...prevData, [name]: [...currentArray, value] };
-                } else {
-                    return { ...prevData, [name]: currentArray.filter(item => item !== value) };
-                }
-            });
-        } else {
-            setFormData(prevData => ({ ...prevData, [name]: value }));
-        }
+    const handleChange = ({ target: { name, value, type, checked } }) => {
+        setFormData(prev => ({
+            ...prev,
+            [type === 'checkbox' ? name : name]: type === 'checkbox'
+                ? checked
+                    ? [...(prev[name] || []), value]
+                    : prev[name].filter(item => item !== value)
+                : value
+        }));
 
-        // Clear error for this field if it exists
-        if (errors[name]) {
-            setErrors(prevErrors => ({ ...prevErrors, [name]: '' }));
-        }
+        if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
     };
 
     const validateStep = () => {
         const newErrors = {};
-        switch(step) {
-            case 1:
-                if (!formData.username.trim()) newErrors.username = "Username is required";
-                break;
-            case 2:
-                if (!formData.email.trim()) newErrors.email = "Email is required";
-                else if (!/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Email is invalid";
-                break;
-            case 3:
-                if (!formData.destination) newErrors.destination = "Destination is required";
-                break;
-            case 4:
-                if (!formData.dateFrom) newErrors.dateFrom = "Start date is required";
-                if (!formData.dateTo) newErrors.dateTo = "End date is required";
-                if (new Date(formData.dateTo) <= new Date(formData.dateFrom)) {
-                    newErrors.dateTo = "End date must be after start date";
-                }
-                break;
-            case 5:
-                if (formData.preferredModeOfTransport.length === 0) {
-                    newErrors.preferredModeOfTransport = "Select at least one mode of transport";
-                }
-                break;
-            case 6:
-                if (!formData.travelCompanion) newErrors.travelCompanion = "Travel companion is required";
-                break;
-            case 7:
-                if (!formData.languagePreferences.trim()) newErrors.languagePreferences = "Language preference is required";
-                break;
-            case 8:
-                if (!formData.preferredGuideType) newErrors.preferredGuideType = "Guide type preference is required";
-                break;
-            default:
-                break;
+        if (step === 1 && !formData.username.trim()) newErrors.username = "Username is required";
+        if (step === 2 && (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email))) {
+            newErrors.email = formData.email ? "Invalid email format" : "Email is required";
         }
+        if (step === 3 && !formData.destination) newErrors.destination = "Destination is required";
+        if (step === 4) {
+            if (!formData.dateFrom) newErrors.dateFrom = "Start date is required";
+            if (!formData.dateTo) newErrors.dateTo = "End date is required";
+            if (formData.dateFrom && formData.dateTo && new Date(formData.dateFrom) >= new Date(formData.dateTo)) {
+                newErrors.dateTo = "End date must be after start date";
+            }
+        }
+        if (step === 5 && formData.preferredModeOfTransport.length === 0) {
+            newErrors.preferredModeOfTransport = "Select at least one transport mode";
+        }
+        if (step === 6 && !formData.travelCompanion) newErrors.travelCompanion = "Travel companion is required";
+        if (step === 7 && !formData.languagePreferences.trim()) {
+            newErrors.languagePreferences = "Language preference is required";
+        }
+        if (step === 8 && !formData.preferredGuideType) newErrors.preferredGuideType = "Guide type preference is required";
+
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
-    const handleNextStep = () => {
-        if (validateStep()) {
-            setStep(step + 1);
-        }
-    };
-
-    const handlePreviousStep = () => setStep(step - 1);
+    const handleNextStep = () => validateStep() && setStep(prev => prev + 1);
+    const handlePreviousStep = () => setStep(prev => prev - 1);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateStep()) return;
-
+    
         try {
-            const response = await axios.post('http://localhost:5000/api/Tourist/tourist-register', formData);
-            
-            localStorage.setItem('token', response.data.token);
-            
-            if (response.data.booking) {
-                alert('Registration successful and a booking has been created for you!');
-                navigate('/my-bookings');
+            const { data } = await axios.post('http://localhost:5000/api/Tourist/tourist-register', formData);
+            localStorage.setItem('token', data.token);
+    
+            if (data.booking) {
+                // Include guide information in the alert message
+                alert(`Registration successful! Guide assigned: ${data.assignedGuide.username}, located in ${data.assignedGuide.location}.`);
+                navigate('/my-bookings'); // Navigate to "My Bookings" if guide assigned
             } else {
-                alert('Registration successful!');
-                navigate('/dashboard');
+                alert('Registration successful! No guides available.');
+                navigate('/dashboard'); // Navigate to dashboard if no guide is available
             }
         } catch (err) {
-            console.error("Error during submission:", err.response ? err.response.data : err.message);
-            alert('Error during submission: ' + (err.response?.data?.message || err.message));
+            alert('Error: ' + (err.response?.data?.message || err.message));
         }
     };
 
     const renderStep = () => {
-        switch(step) {
+        switch (step) {
             case 1:
                 return (
-                    <div className="form-step">
-                        <h3>Step 1: Choose a Username</h3>
+                    <div>
+                        <label>Step 1: Choose a Username</label>
                         <input
                             type="text"
                             name="username"
-                            placeholder="Enter your preferred username"
+                            placeholder="Enter your username"
                             value={formData.username}
                             onChange={handleChange}
                             className={errors.username ? "error" : ""}
@@ -131,12 +102,12 @@ const TouristForm = () => {
                 );
             case 2:
                 return (
-                    <div className="form-step">
-                        <h3>Step 2: Your Email</h3>
+                    <div>
+                        <label>Step 2: Enter Your Email</label>
                         <input
                             type="email"
                             name="email"
-                            placeholder="example@example.com"
+                            placeholder="Enter your email"
                             value={formData.email}
                             onChange={handleChange}
                             className={errors.email ? "error" : ""}
@@ -144,31 +115,30 @@ const TouristForm = () => {
                         {errors.email && <p className="error-message">{errors.email}</p>}
                     </div>
                 );
-            case 3:
-                return (
-                    <div className="form-step">
-                        <h3>Step 3: Choose Destination</h3>
-                        <select
-                            name="destination"
-                            value={formData.destination}
-                            onChange={handleChange}
-                            className={errors.destination ? "error" : ""}
-                        >
-                            <option value="">Select Destination</option>
-                            <option value="Hyderabad">Hyderabad</option>
-                            <option value="Mumbai">Mumbai</option>
-                            <option value="Delhi">Delhi</option>
-                            <option value="Bangalore">Bangalore</option>
-                            <option value="Chennai">Chennai</option>
-                        </select>
-                        {errors.destination && <p className="error-message">{errors.destination}</p>}
-                    </div>
-                );
+                case 3:
+                    return (
+                        <div className="form-step">
+                            <h3>Step 3: Choose Destination</h3>
+                            <select
+                                name="destination"
+                                value={formData.destination}
+                                onChange={handleChange}
+                                className={errors.destination ? "error" : ""}
+                            >
+                                <option value="">Select Destination</option>
+                                <option value="Hyderabad">Hyderabad</option>
+                                <option value="Mumbai">Mumbai</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Bangalore">Bangalore</option>
+                                <option value="Chennai">Chennai</option>
+                            </select>
+                            {errors.destination && <p className="error-message">{errors.destination}</p>}
+                        </div>
+                    );
             case 4:
                 return (
-                    <div className="form-step">
-                        <h3>Step 4: Travel Dates</h3>
-                        <label>From:</label>
+                    <div>
+                        <label>Step 4: Travel Dates</label>
                         <input
                             type="date"
                             name="dateFrom"
@@ -177,7 +147,7 @@ const TouristForm = () => {
                             className={errors.dateFrom ? "error" : ""}
                         />
                         {errors.dateFrom && <p className="error-message">{errors.dateFrom}</p>}
-                        <label>To:</label>
+
                         <input
                             type="date"
                             name="dateTo"
@@ -190,36 +160,54 @@ const TouristForm = () => {
                 );
             case 5:
                 return (
-                    <div className="form-step">
-                        <h3>Step 5: Preferred Mode of Transport</h3>
-                        <div className="checkbox-group">
-                            {['Car', 'Bike', 'Bus', 'Train', 'Flight'].map(transport => (
-                                <label key={transport}>
-                                    <input
-                                        type="checkbox"
-                                        name="preferredModeOfTransport"
-                                        value={transport}
-                                        checked={formData.preferredModeOfTransport.includes(transport)}
-                                        onChange={handleChange}
-                                    />
-                                    {transport}
-                                </label>
-                            ))} 
+                    <div>
+                        <label>Step 5: Preferred Modes of Transport</label>
+                        <div>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    name="preferredModeOfTransport"
+                                    value="Car"
+                                    checked={formData.preferredModeOfTransport.includes("Car")}
+                                    onChange={handleChange}
+                                />
+                                Car
+                            </label>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    name="preferredModeOfTransport"
+                                    value="Bike"
+                                    checked={formData.preferredModeOfTransport.includes("Bike")}
+                                    onChange={handleChange}
+                                />
+                                Bike
+                            </label>
+                            <label>
+                                <input
+                                    type="checkbox"
+                                    name="preferredModeOfTransport"
+                                    value="Bus"
+                                    checked={formData.preferredModeOfTransport.includes("Bus")}
+                                    onChange={handleChange}
+                                />
+                                Bus
+                            </label>
                         </div>
                         {errors.preferredModeOfTransport && <p className="error-message">{errors.preferredModeOfTransport}</p>}
                     </div>
                 );
                 case 6:
                     return (
-                        <div className="form-step">
-                            <h3>Step 6: Travel Companion</h3>
+                        <div>
+                            <label>Step 6: Travel Companion</label>
                             <select
                                 name="travelCompanion"
                                 value={formData.travelCompanion}
                                 onChange={handleChange}
                                 className={errors.travelCompanion ? "error" : ""}
                             >
-                                <option value="">Select Travel Companion</option>
+                                <option value="">Select...</option>
                                 <option value="Family">Family</option>
                                 <option value="Friends">Friends</option>
                                 <option value="Solo">Solo</option>
@@ -232,12 +220,12 @@ const TouristForm = () => {
                 
             case 7:
                 return (
-                    <div className="form-step">
-                        <h3>Step 7: Language Preferences</h3>
+                    <div>
+                        <label>Step 7: Language Preferences</label>
                         <input
                             type="text"
                             name="languagePreferences"
-                            placeholder="Enter preferred languages"
+                            placeholder="Enter your preferred languages"
                             value={formData.languagePreferences}
                             onChange={handleChange}
                             className={errors.languagePreferences ? "error" : ""}
@@ -247,15 +235,15 @@ const TouristForm = () => {
                 );
             case 8:
                 return (
-                    <div className="form-step">
-                        <h3>Step 8: Preferred Guide Type</h3>
+                    <div>
+                        <label>Step 8: Preferred Guide Type</label>
                         <select
                             name="preferredGuideType"
                             value={formData.preferredGuideType}
                             onChange={handleChange}
                             className={errors.preferredGuideType ? "error" : ""}
                         >
-                            <option value="">Select Guide Type</option>
+                            <option value="">Select...</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="No Preference">No Preference</option>
@@ -269,17 +257,19 @@ const TouristForm = () => {
     };
 
     return (
-        <form onSubmit={handleSubmit} className="tourist-form">
-            {renderStep()}
-            <div className="form-navigation">
-                {step > 1 && <button type="button" onClick={handlePreviousStep}>Previous</button>}
-                {step < 8 ? (
-                    <button type="button" onClick={handleNextStep}>Next</button>
-                ) : (
-                    <button type="submit">Submit</button>
-                )}
-            </div>
-        </form>
+        <div className="tourist-form">
+            <form onSubmit={handleSubmit}>
+                {renderStep()}
+                <div className="buttons">
+                    {step > 1 && <button type="button" onClick={handlePreviousStep}>Previous</button>}
+                    {step < 8 ? (
+                        <button type="button" onClick={handleNextStep}>Next</button>
+                    ) : (
+                        <button type="submit">Submit</button>
+                    )}
+                </div>
+            </form>
+        </div>
     );
 };
 

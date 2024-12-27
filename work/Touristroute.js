@@ -17,21 +17,21 @@ const isValidDate = (date) => {
     return parsedDate instanceof Date && !isNaN(parsedDate);
 };
 
-// Tourist registration
+// Tourist registration with guide matching
 router.post('/tourist-register', async (req, res) => {
-    try {
-        const { 
-            username, 
-            email, 
-            destination, 
-            dateFrom, 
-            dateTo, 
-            preferredModeOfTransport, 
-            travelCompanion, 
-            languagePreferences, 
-            preferredGuideType 
-        } = req.body;
+    const { 
+        username, 
+        email, 
+        destination, 
+        dateFrom, 
+        dateTo, 
+        preferredModeOfTransport, 
+        travelCompanion, 
+        languagePreferences, 
+        preferredGuideType 
+    } = req.body;
 
+    try {
         // Validate input
         if (!username || !email || !destination || !dateFrom || !dateTo) {
             return res.status(400).json({ message: 'Please fill all required fields' });
@@ -55,86 +55,87 @@ router.post('/tourist-register', async (req, res) => {
             return res.status(400).json({ message: 'Tourist Already Exists' });
         }
 
-        // Create new tourist
-        const newTourist = new Tourist({ 
-            username, 
-            email, 
-            destination, 
-            dateFrom, 
-            dateTo, 
-            preferredModeOfTransport, 
-            travelCompanion, 
-            languagePreferences, 
-            preferredGuideType 
-        });
+        // Find matching guides based on destination
+        const guides = await Guide.find({ location: destination });
+        console.log('Found Guides:', guides);
 
-        await newTourist.save();
+        let guideMessage = '';
+        let assignedGuide = null;
 
-        // Create JWT token
-        const payload = {
-            user: {
-                id: newTourist._id
+        if (guides.length > 0) {
+            // Log preferred guide type and available guide types for debugging
+            console.log('Preferred Guide Type:', preferredGuideType);
+            console.log('Available Guides:', guides.map(guide => guide.guideType));
+
+            // Attempt to find a guide that matches the preferred guide type
+            assignedGuide = guides.find(guide => guide.guideType === preferredGuideType);
+
+            // If no guide matches the preferred type, assign the first available guide
+            if (!assignedGuide) {
+                assignedGuide = guides[0]; // Assign the first available guide
+                guideMessage = 'No matching guide found for preferred type, assigned first available guide.';
+            } else {
+                guideMessage = `Guide found: ${assignedGuide.username}, located in ${assignedGuide.location}.`;
             }
-        };
 
-        jwt.sign(
-            payload,
-            process.env.JWT_SECRET,
-            { expiresIn: '24h' },
-            (err, token) => {
-                if (err) throw err;
-                res.status(200).json({ 
-                    message: 'Tourist Registered Successfully',
-                    token,
-                    tourist: {
-                        username: newTourist.username,
-                        email: newTourist.email,
-                        destination: newTourist.destination,
-                        dateFrom: newTourist.dateFrom,
-                        dateTo: newTourist.dateTo
-                    }
-                });
-            }
-        );
+            // Create new tourist
+            const newTourist = new Tourist({ 
+                username, 
+                email, 
+                destination, 
+                dateFrom, 
+                dateTo, 
+                preferredModeOfTransport, 
+                travelCompanion, 
+                languagePreferences, 
+                preferredGuideType,
+                assignedGuide: assignedGuide._id, // Assign guide to the tourist
+            });
+
+            await newTourist.save();
+
+            // Generate JWT token for the tourist
+            const payload = {
+                user: {
+                    id: newTourist._id,
+                },
+            };
+            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
+
+            // Log the successful registration
+            console.log('Tourist Registration Successful:', newTourist);
+            console.log('Guide Message:', guideMessage);
+
+
+            // Send response with guide information
+            return res.status(201).json({
+                message: `Registration successful! ${guideMessage}`, // Clear success message
+                booking: true,
+                token,
+                assignedGuide: {
+                    username: assignedGuide.username,
+                    location: assignedGuide.location,
+                },
+            });
+        } else {
+            // If no guides available
+            console.log('No guides available for the selected destination.');
+            return res.status(404).json({
+                message: 'Registration successful! No guide assigned.', // Clear message for no guide
+                booking: false,
+            });
+        }
     } catch (err) {
-        console.error("Error during tourist registration:", err);
+        console.error('Error during tourist registration:', err);
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-
-// Match tourist with guide
-router.post('/match-tourist-with-guide', auth, async (req, res) => {
-    try {
-        const { destination, preferredGuideType } = req.body;
-        
-        console.log('Querying for guide with:', { location: destination, guideType: preferredGuideType });
-        
-        const matchingGuide = await Guide.findOne({
-            location: destination,
-            guideType: preferredGuideType
-        });
-
-        if (!matchingGuide) {
-            return res.status(404).json({ message: 'No guide found matching your criteria' });
-        }
-
-        res.json({ 
-            message: 'Guide found successfully',
-            guideDetails: matchingGuide 
-        });
-    } catch (error) {
-        console.error("Error matching guide:", error);
-        res.status(500).json({ message: 'Error matching guide' });
-    }
-});
-
-// Create booking
+// Create booking (unchanged)
 router.post('/create-booking', auth, async (req, res) => {
     try {
         const { guideId, dateFrom, dateTo, location } = req.body;
         const userId = req.user.id;
 
-        // Create new booking
         const newBooking = new Booking({
             userId,
             guideDetails: guideId,
@@ -142,7 +143,7 @@ router.post('/create-booking', auth, async (req, res) => {
             dateTo: new Date(dateTo),
             status: 'pending',
             location,
-            totalCost: 1000 // You can modify this based on your pricing logic
+            totalCost: 1000
         });
 
         await newBooking.save();
@@ -157,16 +158,12 @@ router.post('/create-booking', auth, async (req, res) => {
     }
 });
 
-// Get bookings
+// Get bookings (unchanged)
 router.get('/my-bookings', auth, async (req, res) => {
     try {
-        console.log('User ID:', req.user.id);
-        
         const bookings = await Booking.find({ userId: req.user.id })
             .populate('guideDetails', 'username email phone guideExperience languagesSpoken')
             .sort({ createdAt: -1 });
-        
-        console.log('Bookings found:', bookings.length);
 
         const formattedBookings = bookings.map(booking => ({
             id: booking._id,
@@ -186,7 +183,7 @@ router.get('/my-bookings', auth, async (req, res) => {
     }
 });
 
-// Cancel booking
+// Cancel booking (unchanged)
 router.put('/cancel-booking/:bookingId', auth, async (req, res) => {
     try {
         const booking = await Booking.findOne({
@@ -207,8 +204,6 @@ router.put('/cancel-booking/:bookingId', auth, async (req, res) => {
         booking.cancellationReason = req.body.reason || 'No reason provided';
         
         await booking.save();
-
-        // You can add notification logic here (email/SMS to guide)
 
         res.json({ 
             message: 'Booking cancelled successfully',
