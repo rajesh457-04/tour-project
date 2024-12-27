@@ -129,6 +129,36 @@ router.post('/tourist-register', async (req, res) => {
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 });
+
+const authMiddleware = require('../middleware'); // Adjust the path if needed
+
+
+router.get('/tourist-details', authMiddleware, async (req, res) => {
+    try {
+        const tourist = await Tourist.findOne({ _id: req.user.id }).populate('assignedGuide');
+        
+        if (!tourist) {
+            return res.status(404).json({ message: 'Tourist not found' });
+        }
+
+        // Send tourist details along with assigned guide information
+        res.json({
+            username: tourist.username,
+            destination: tourist.destination,
+            dateFrom: tourist.dateFrom,
+            dateTo: tourist.dateTo,
+            preferredModeOfTransport: tourist.preferredModeOfTransport,
+            travelCompanion: tourist.travelCompanion,
+            languagePreferences: tourist.languagePreferences,
+            preferredGuideType: tourist.preferredGuideType,
+            assignedGuide: tourist.assignedGuide,  // Guide details
+        });
+    } catch (err) {
+        console.error('Error fetching tourist details:', err);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 // Create booking (unchanged)
 router.post('/create-booking', auth, async (req, res) => {
     try {
@@ -157,66 +187,5 @@ router.post('/create-booking', auth, async (req, res) => {
     }
 });
 
-// Get bookings (unchanged)
-router.get('/my-bookings', auth, async (req, res) => {
-    try {
-        const bookings = await Booking.find({ userId: req.user.id })
-            .populate('guideDetails', 'username email phone guideExperience languagesSpoken')
-            .sort({ createdAt: -1 });
-
-        const formattedBookings = bookings.map(booking => ({
-            id: booking._id,
-            guide: booking.guideDetails,
-            dateFrom: booking.dateFrom,
-            dateTo: booking.dateTo,
-            status: booking.status,
-            location: booking.location,
-            totalCost: booking.totalCost,
-            createdAt: booking.createdAt
-        }));
-
-        res.json(formattedBookings);
-    } catch (error) {
-        console.error("Error fetching bookings:", error);
-        res.status(500).json({ message: 'Error fetching bookings' });
-    }
-});
-
-// Cancel booking (unchanged)
-router.put('/cancel-booking/:bookingId', auth, async (req, res) => {
-    try {
-        const booking = await Booking.findOne({
-            _id: req.params.bookingId,
-            userId: req.user.id
-        }).populate('guideDetails');
-
-        if (!booking) {
-            return res.status(404).json({ message: 'Booking not found' });
-        }
-
-        if (booking.status !== 'pending') {
-            return res.status(400).json({ message: 'Cannot cancel a non-pending booking' });
-        }
-
-        booking.status = 'cancelled';
-        booking.cancellationDate = new Date();
-        booking.cancellationReason = req.body.reason || 'No reason provided';
-        
-        await booking.save();
-
-        res.json({ 
-            message: 'Booking cancelled successfully',
-            booking: {
-                id: booking._id,
-                status: booking.status,
-                cancellationDate: booking.cancellationDate,
-                cancellationReason: booking.cancellationReason
-            }
-        });
-    } catch (error) {
-        console.error("Error cancelling booking:", error);
-        res.status(500).json({ message: 'Error cancelling booking' });
-    }
-});
 
 module.exports = router;

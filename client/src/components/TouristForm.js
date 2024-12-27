@@ -73,10 +73,10 @@ const TouristForm = () => {
             if (data.booking) {
                 // Include guide information in the alert message
                 alert(`Registration successful! Guide assigned: ${data.assignedGuide.username}, located in ${data.assignedGuide.location}.`);
-                navigate('/my-bookings'); // Navigate to "My Bookings" if guide assigned
+                navigate('/myprofile'); // Navigate to "My Bookings" if guide assigned
             } else {
                 alert('Registration successful! No guides available.');
-                navigate('/dashboard'); // Navigate to dashboard if no guide is available
+                navigate('/myprofile'); // Navigate to dashboard if no guide is available
             }
         } catch (err) {
             alert('Error: ' + (err.response?.data?.message || err.message));

@@ -14,10 +14,19 @@ const TouristSchema = new mongoose.Schema({
         required: true 
     },
     languagePreferences: { type: [String], required: false, default: [] }, 
+    assignedGuide: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Guide',  // Reference to the Guide model
+    },
     guideType: { 
         type: String, 
         enum: ['Male', 'Female', 'No Preference'], 
         required: false 
+    },
+    userId: {  // Add this field to associate with the user
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User ',  // Reference to the User model
+        required: true
     }
 }, { timestamps: true });
 
