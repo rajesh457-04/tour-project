@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import axios from 'axios';
-import { store } from './App';
+import { store } from './App'; // Assuming you have a context provider in App.js
 import { useNavigate } from 'react-router-dom';
 import './style5.css';
 
@@ -9,25 +9,48 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [, setToken] = useContext(store); // Get the setToken function from context
     const navigate = useNavigate();
+    const [errorMessage, setErrorMessage] = useState(''); // For displaying errors
 
+    // Handle form submission
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            const res = await axios.post('http://localhost:5000/login', { email, password });
-            const token = res.data.token; // Get token from response
-            setToken(token); // Set token in context
-            localStorage.setItem('token', token); // Store token in localStorage
-            localStorage.setItem('isAuthenticated', 'true'); // Set authenticated flag
-            alert('Login successful');
-            navigate('/myprofile'); // Redirect to profile after login
-        } catch (error) {
-            alert(error.response.data);
-        }
-    };
+            // Log the login payload for debugging
+            console.log("Login Payload:", { email, password });
 
-    const handleForgotPassword = () => {
-        // Implement forgot password logic here
-        alert("Forgot password functionality will be implemented soon.");
+            // Send login request to the server
+            const res = await axios.post('http://localhost:5000/login', { email, password });
+            
+            // Assuming the response contains the token
+            const token = res.data.token;
+
+            // Set the token in the context and localStorage
+            setToken(token);
+            localStorage.setItem('token', token);
+            localStorage.setItem('isAuthenticated', 'true');
+            
+            // Log and alert user of successful login
+            console.log("Login successful, token:", token);
+            alert('Login successful');
+            
+            // Redirect user to their profile
+            navigate('/myprofile');
+        } catch (error) {
+            // Enhanced error handling with different cases
+            if (error.response) {
+                // Server responded with an error (e.g., invalid credentials)
+                console.error("Error response:", error.response.data);
+                setErrorMessage(error.response.data.message || "Invalid email or password");
+            } else if (error.request) {
+                // Request was made but no response was received
+                console.error("Network error:", error.request);
+                setErrorMessage("No response from server. Please try again.");
+            } else {
+                // Other errors (e.g., internal JS errors)
+                console.error("Error:", error.message);
+                setErrorMessage("An error occurred. Please try again.");
+            }
+        }
     };
 
     return (
@@ -54,24 +77,18 @@ const Login = () => {
                     />
                     <label>Password</label>
                 </div>
-                <div className="remember">
-                    <label>
-                        <input type="checkbox" />
-                        Remember me
-                    </label>
-                    {/* Use a button instead of an anchor for Forgot password */}
-                    <button type="button" onClick={handleForgotPassword} className="link-button">
-                        Forgot password?
-                    </button>
-                </div>
                 <button type="submit" className="btn1">Login</button>
+
+                {errorMessage && (
+                    <div className="error-message">
+                        <p>{errorMessage}</p>
+                    </div>
+                )}
+
                 <div className="login-register">
                     <p>
-                        Don't have an account? 
-                        {/* Use navigate for internal routing */}
-                        <button type="button" onClick={() => navigate('/register')} className="link-button">
-                            Register
-                        </button>
+                        Don't have an account?
+                        <a href="/register">Register</a>
                     </p>
                 </div>
             </form>

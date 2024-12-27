@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import './style5.css'; // Ensure this points to your CSS file
+import './style5.css';
 import axios from 'axios';
 
 const Register = () => {
@@ -10,6 +10,9 @@ const Register = () => {
         confirmpassword: ''
     });
 
+    const [errorMessage, setErrorMessage] = useState('');
+    const [loading, setLoading] = useState(false);
+
     const changeHandler = (e) => {
         setData({ ...data, [e.target.name]: e.target.value });
     };
@@ -17,10 +20,10 @@ const Register = () => {
     const submitHandler = async (e) => {
         e.preventDefault();
         if (data.password !== data.confirmpassword) {
-            alert('Passwords do not match!');
+            setErrorMessage('Passwords do not match!');
             return;
         }
-
+        setLoading(true);
         try {
             const res = await axios.post('http://localhost:5000/register', data);
             alert(res.data);
@@ -31,7 +34,11 @@ const Register = () => {
                 confirmpassword: ''
             });
         } catch (error) {
-            alert(error.response.data);
+            setErrorMessage(
+                error.response?.data.message || 'Registration failed. Please try again.'
+            );
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -45,6 +52,7 @@ const Register = () => {
                         type="text"
                         name="username"
                         required
+                        placeholder="Enter your username"
                         value={data.username}
                         onChange={changeHandler}
                     />
@@ -56,6 +64,7 @@ const Register = () => {
                         type="email"
                         name="email"
                         required
+                        placeholder="Enter your email"
                         value={data.email}
                         onChange={changeHandler}
                     />
@@ -67,6 +76,7 @@ const Register = () => {
                         type="password"
                         name="password"
                         required
+                        placeholder="Enter your password"
                         value={data.password}
                         onChange={changeHandler}
                     />
@@ -78,22 +88,19 @@ const Register = () => {
                         type="password"
                         name="confirmpassword"
                         required
+                        placeholder="Confirm your password"
                         value={data.confirmpassword}
                         onChange={changeHandler}
                     />
                     <label>Confirm Password</label>
                 </div>
-                <div className="remember">
-                    <label>
-                        <input type="checkbox" />
-                        I agree to the terms & conditions
-                    </label>
-                </div>
-                <button type="submit" className="btn1">Register</button>
+                {errorMessage && <p className="error-message">{errorMessage}</p>}
+                <button type="submit" className="btn1" disabled={loading}>
+                    {loading ? 'Processing...' : 'Register'}
+                </button>
                 <div className="login-register">
                     <p>
-                        Already have an account?
-                        <a href="/login">Login</a>
+                        Already have an account? <a href="/login">Login</a>
                     </p>
                 </div>
             </form>
