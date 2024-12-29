@@ -1,20 +1,32 @@
 const jwt = require('jsonwebtoken');
-require('dotenv').config(); // Make sure environment variables are loaded
+require('dotenv').config();
 
-module.exports = function(req, res, next) {
+module.exports = function (req, res, next) {
     try {
-        // Check for token in the request header
-        const token = req.header('x-token');
-        if (!token) {
-            return res.status(401).json({ message: 'Authorization denied: Token not found' });
+        // Get token from the Authorization header
+        const authHeader = req.header('Authorization');
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({ message: 'Unauthorized: Token not found' });
         }
 
-        // Verify token
+        // Extract the token
+        const token = authHeader.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ message: 'Unauthorized: Token not provided' });
+        }
+
+        // Verify the token
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded.user;
-        next(); // Proceed to the next middleware or route handler
+
+        // Validate the decoded token
+        if (!decoded || !decoded.user || !decoded.user.id) {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token payload' });
+        }
+
+        req.user = decoded.user; // Attach user object (with ID) to request
+        next(); // Pass control to the next middleware
     } catch (err) {
-        console.error('JWT verification failed:', err);
-        return res.status(401).json({ message: 'Authorization denied: Invalid token' });
+        console.error('JWT verification failed:', err.message);
+        return res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
 };
