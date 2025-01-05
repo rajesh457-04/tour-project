@@ -2,7 +2,7 @@ const express = require('express');
 const Tourist = require('./Tourist');
 const Guide = require('./Guide');
 const router = express.Router();
-const auth = require('../middleware'); 
+const verifyToken = require('../middleware');
 const Booking = require('./Booking');
 const jwt = require('jsonwebtoken');
 const User = require('../model');
@@ -33,46 +33,41 @@ router.post('/tourist-register', async (req, res) => {
     } = req.body;
 
     try {
-        // Validate input
+        // Step 1: Validate input fields
         if (!username || !email || !destination || !dateFrom || !dateTo) {
             return res.status(400).json({ message: 'Please fill all required fields' });
         }
 
-        // Validate date format
+        // Step 2: Validate date format
         if (!isValidDate(dateFrom) || !isValidDate(dateTo)) {
             return res.status(400).json({ message: 'Invalid date format. Use YYYY-MM-DD.' });
         }
 
-        // Validate travel companion option
-        if (!['Friends', 'Family', 'Solo', 'Other'].includes(travelCompanion)) {
+        // Step 3: Validate travel companion option
+        const validCompanions = ['Friends', 'Family', 'Solo', 'Other'];
+        if (!validCompanions.includes(travelCompanion)) {
             return res.status(400).json({ 
-                message: `Invalid travel companion option. Valid options are: Friends, Family, Solo, Other` 
+                message: `Invalid travel companion option. Valid options are: ${validCompanions.join(', ')}` 
             });
         }
 
-        // Check if tourist already exists
-        const existingTourist = await Tourist.findOne({ email });
+        // Step 4: Check if user exists and matches email/username
+        const existingUser  = await User.findOne({ email });
+        if (!existingUser ) {
+            return res.status(400).json({ message: 'User  does not exist. Please register first.' });
+        }
+
+        if (existingUser .username !== username) {
+            return res.status(400).json({ message: 'Username does not match the registered username.' });
+        }
+
+        // Step 5: Check if this user has already registered as a tourist
+        const existingTourist = await Tourist.findOne({ userId: existingUser ._id });
         if (existingTourist) {
-            return res.status(400).json({ message: 'Tourist already exists' });
+            return res.status(400).json({ message: 'You have already registered as a tourist.' });
         }
 
-        // Check if user exists, otherwise create a new user
-        let user;
-        const existingUser = await User.findOne({ email });
-
-        if (existingUser) {
-            user = existingUser;
-        } else {
-            // Automatically create a new user if not found
-            user = new User({
-                email, // assuming you need only email and username for user creation
-                username,
-                password: 'defaultPassword', // You can set a default password or omit it to handle later
-            });
-            await user.save(); // Save the new user to the database
-        }
-
-        // Find matching guides
+        // Step 6: Find matching guides based on destination
         const guides = await Guide.find({ location: destination });
         if (!guides.length) {
             return res.status(404).json({
@@ -81,12 +76,13 @@ router.post('/tourist-register', async (req, res) => {
             });
         }
 
+        // Step 7: Assign a guide based on preferred guide type
         let assignedGuide = guides.find(guide => guide.guideType === preferredGuideType) || guides[0];
         let guideMessage = assignedGuide.guideType === preferredGuideType
             ? `Guide found: ${assignedGuide.username}, located in ${assignedGuide.location}.`
             : 'No matching guide found for preferred type, assigned first available guide.';
 
-        // Create new tourist and associate with the created user
+        // Step 8: Create a new tourist registration and associate it with the user
         const newTourist = new Tourist({ 
             username, 
             email, 
@@ -98,62 +94,86 @@ router.post('/tourist-register', async (req, res) => {
             languagePreferences, 
             preferredGuideType,
             assignedGuide: assignedGuide._id,
-            userId: user._id, // Associate the newly created user with the tourist
+            userId: existingUser ._id, // Link tourist registration to the user's ID
         });
 
-        await newTourist.save(); // Save the tourist to the database
+        await newTourist.save(); // Save the new tourist to the database
 
-        // Generate JWT token for the tourist (linked with the user)
+        // Step 9: Generate JWT token for the tourist (linked with the user)
         const payload = {
-            user: { id: newTourist._id },
+            user: { id: existingUser ._id }, // Use the user's ID for the token
         };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' });
 
         console.log('Tourist Registration Successful:', newTourist);
 
-        // Send response
+        // Step 10: Send response with guide details and token
         return res.status(201).json({
             message: `Registration successful! ${guideMessage}`,
             booking: true,
             token,
             assignedGuide: {
                 username: assignedGuide.username,
-                location: assignedGuide.location,
+                location : assignedGuide.location,
+                guideType: assignedGuide.guideType,
             },
+            tourist: newTourist,
         });
     } catch (err) {
-        console.error('Error during tourist registration:', err);
+        console.error('Error during tourist registration:', err); 
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
 
-
-
-// In your backend code (Touristroute.js)
-// In your backend code (Touristroute.js)
-
-router.get('/tourists-with-guides', async (req, res) => {
+// Route to fetch tourist bookings for the logged-in user
+router.get('/my-bookings', verifyToken, async (req, res) => {
     try {
-        // Fetch tourists with their assigned guide details
-        const touristsWithGuides = await Tourist.find({ assignedGuide: { $ne: null } })
-            .populate('assignedGuide', 'username location'); // Populate guide details (username and location)
+        // Get the user ID from the token
+        const userId = req.user.id;
 
-        if (!touristsWithGuides || touristsWithGuides.length === 0) {
-            return res.status(404).json({ message: 'No tourists assigned to guides found.' });
+        // Fetch bookings associated with the user ID
+        const bookings = await Tourist.find({ userId }).populate('assignedGuide', 'username location');
+
+        // Check if bookings exist
+        if (!bookings || bookings.length === 0) {
+            return res.status(204).json({ message: 'No bookings found for this user.' }); // 204 No Content
         }
 
-        // Respond with tourists who are assigned to a guide
-        return res.status(200).json(touristsWithGuides);
+        // Transform the bookings data for a cleaner response
+        const transformedBookings = bookings.map(booking => ({
+            id: booking._id,
+            username: booking.username,
+            email: booking.email,
+            destination: booking.destination,
+            travelCompanion: booking.travelCompanion,
+            dateFrom: booking.dateFrom,
+            dateTo: booking.dateTo,
+            preferredModeOfTransport: booking.preferredModeOfTransport,
+            languagePreferences: booking.languagePreferences,
+            preferredGuideType: booking.preferredGuideType,
+            assignedGuide: booking.assignedGuide ? {
+                username: booking.assignedGuide.username,
+                location: booking.assignedGuide.location,
+            } : null,
+            createdAt: booking.createdAt,
+            updatedAt: booking.updatedAt,
+        }));
+
+        // Send the transformed bookings in the response
+        return res.status(200).json({
+            message: 'Bookings retrieved successfully.',
+            bookings: transformedBookings,
+        });
     } catch (err) {
-        console.error('Error fetching tourists with guides:', err);
+        console.error('Error fetching bookings:', err);
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 });
 
-
-
-const authMiddleware = require('../middleware'); // Adjust the path if needed
-
-
 module.exports = router;
+
+
+
+// In your backend code (Touristroute.js)
+// In your backend code (Touristroute.

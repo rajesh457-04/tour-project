@@ -57,25 +57,37 @@ app.post('/register', async (req, res) => {
 app.post('/login', async (req, res) => {
   try {
       const { email, password } = req.body;
+
+      // Check if user exists
       let exist = await Registeruser.findOne({ email });
       if (!exist) {
-          return res.status(400).send('User Not Found');
+          return res.status(400).send('User  Not Found');
       }
+
       // Compare hashed password
-      if (!await bcrypt.compare(password, exist.password)) {
+      const isMatch = await bcrypt.compare(password, exist.password);
+      if (!isMatch) {
           return res.status(400).send('Invalid credentials');
       }
+
+      // Create payload for JWT
       let payload = {
           user: {
-              id: exist.id
+              id: exist.id // Use the user's ID
           }
       };
-      jwt.sign(payload, 'jwtSecret', { expiresIn: 3600000 }, (err, token) => {
-          if (err) throw err;
-          return res.json({ token });
+
+      // Sign the token using the secret from environment variables
+      jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
+          if (err) {
+              console.error('Error signing token:', err);
+              return res.status(500).send('Server Error');
+          }
+          console.log('Generated Token:', token);
+          return res.json({ token }); // Send the token back to the client
       });
   } catch (err) {
-      console.error(err);
+      console.error('Server Error:', err);
       return res.status(500).send('Server Error');
   }
 });
@@ -95,34 +107,6 @@ app.get('/myprofile', middleware, async (req, res) => {
 });
 
 // Matching Route: Match tourist with guide
-app.post('/api/tourist/match-tourist-with-guide', async (req, res) => {
-  try {
-    const { destination, preferredGuideType } = req.body;
-
-    if (!destination) {
-      return res.status(400).json({ message: 'Destination is required' });
-    }
-
-    const query = { location: destination };
-    if (preferredGuideType && preferredGuideType !== 'No Preference') {
-      query.guideType = preferredGuideType;
-    }
-
-    const matchedGuide = await Guide.findOne(query);
-    if (!matchedGuide) {
-      return res.status(404).json({ message: 'No guides found for the selected location and guide type' });
-    }
-
-    res.json({
-      message: 'Guide Found',
-      guideDetails: matchedGuide,
-    });
-  } catch (err) {
-    console.error('Error during matching tourist with guide:', err);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
-});
-
 // Use Tourist and Guide Routes
 app.use('/api/tourist', touristRoutes);
 app.use('/api/guide', guideRoutes);

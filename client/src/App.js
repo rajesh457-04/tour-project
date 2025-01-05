@@ -20,8 +20,9 @@ const App = () => {
         <store.Provider value={[token, setToken]}>
             <BrowserRouter>
                 <div className="app-container">
-                    <Nav />
+                    
                     <Routes>
+                        <Route path='/' element={<Nav />} /> 
                         <Route path='/register' element={<Register />} />
                         <Route path='/login' element={<Login />} />
                         <Route path='/myprofile' element={<MyProfile />} />

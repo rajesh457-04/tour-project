@@ -65,11 +65,11 @@ const TouristForm = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!validateStep()) return;
-    
+
         try {
             const { data } = await axios.post('http://localhost:5000/api/Tourist/tourist-register', formData);
             localStorage.setItem('token', data.token);
-    
+
             if (data.booking) {
                 // Include guide information in the alert message
                 alert(`Registration successful! Guide assigned: ${data.assignedGuide.username}, located in ${data.assignedGuide.location}.`);
@@ -115,26 +115,26 @@ const TouristForm = () => {
                         {errors.email && <p className="error-message">{errors.email}</p>}
                     </div>
                 );
-                case 3:
-                    return (
-                        <div className="form-step">
-                            <h3>Step 3: Choose Destination</h3>
-                            <select
-                                name="destination"
-                                value={formData.destination}
-                                onChange={handleChange}
-                                className={errors.destination ? "error" : ""}
-                            >
-                                <option value="">Select Destination</option>
-                                <option value="Hyderabad">Hyderabad</option>
-                                <option value="Mumbai">Mumbai</option>
-                                <option value="Delhi">Delhi</option>
-                                <option value="Bangalore">Bangalore</option>
-                                <option value="Chennai">Chennai</option>
-                            </select>
-                            {errors.destination && <p className="error-message">{errors.destination}</p>}
-                        </div>
-                    );
+            case 3:
+                return (
+                    <div className="form-step">
+                        <h3>Step 3: Choose Destination</h3>
+                        <select
+                            name="destination"
+                            value={formData.destination}
+                            onChange={handleChange}
+                            className={errors.destination ? "error" : ""}
+                        >
+                            <option value="">Select Destination</option>
+                            <option value="Hyderabad">Hyderabad</option>
+                            <option value="Mumbai">Mumbai</option>
+                            <option value="Delhi">Delhi</option>
+                            <option value="Bangalore">Bangalore</option>
+                            <option value="Chennai">Chennai</option>
+                        </select>
+                        {errors.destination && <p className="error-message">{errors.destination}</p>}
+                    </div>
+                );
             case 4:
                 return (
                     <div>
@@ -197,27 +197,26 @@ const TouristForm = () => {
                         {errors.preferredModeOfTransport && <p className="error-message">{errors.preferredModeOfTransport}</p>}
                     </div>
                 );
-                case 6:
-                    return (
-                        <div>
-                            <label>Step 6: Travel Companion</label>
-                            <select
-                                name="travelCompanion"
-                                value={formData.travelCompanion}
-                                onChange={handleChange}
-                                className={errors.travelCompanion ? "error" : ""}
-                            >
-                                <option value="">Select...</option>
-                                <option value="Family">Family</option>
-                                <option value="Friends">Friends</option>
-                                <option value="Solo">Solo</option>
-                                <option value="Couple">Couple</option>
-                                <option value="Group">Group</option>
-                            </select>
-                            {errors.travelCompanion && <p className="error-message">{errors.travelCompanion}</p>}
-                        </div>
-                    );
-                
+            case 6:
+                return (
+                    <div>
+                        <label>Step 6: Travel Companion</label>
+                        <select
+                            name="travelCompanion"
+                            value={formData.travelCompanion}
+                            onChange={handleChange}
+                            className={errors.travelCompanion ? "error" : ""}
+                        >
+                            <option value="">Select...</option>
+                            <option value="Family">Family</option>
+                            <option value="Friends">Friends</option>
+                            <option value="Solo">Solo</option>
+                            <option value="Couple">Couple</option>
+                            <option value="Group">Group</option>
+                        </select>
+                        {errors.travelCompanion && <p className="error-message">{errors.travelCompanion}</p>}
+                    </div>
+                );
             case 7:
                 return (
                     <div>
@@ -260,7 +259,8 @@ const TouristForm = () => {
         <div className="tourist-form">
             <form onSubmit={handleSubmit}>
                 {renderStep()}
-                <div className="buttons">
+
+                <div className="form-navigation">
                     {step > 1 && <button type="button" onClick={handlePreviousStep}>Previous</button>}
                     {step < 8 ? (
                         <button type="button" onClick={handleNextStep}>Next</button>
