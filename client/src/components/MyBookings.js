@@ -2,76 +2,82 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 const MyBookings = () => {
-  const [tourists, setTourists] = useState([]);  // State to store tourists assigned to guides
-  const [error, setError] = useState(null);
+    const [bookings, setBookings] = useState([]); // Initialize bookings as an empty array
+    const [loading, setLoading] = useState(true); // Loading state
+    const [error, setError] = useState(null); // Error state
 
-  useEffect(() => {
-    const fetchTouristDetails = async () => {
-      const token = localStorage.getItem('token');  // Get token from localStorage
+    useEffect(() => {
+        const fetchBookings = async () => {
+            const token = localStorage.getItem('token'); // Retrieve token from localStorage
 
-      if (!token) {
-        alert('Please log in first');
-        return;
-      }
+            if (!token) {
+                alert('Please log in first.');
+                return;
+            }
 
-      try {
-        // Make GET request to fetch tourists assigned to guides
-        const { data } = await axios.get('http://localhost:5000/api/Tourist/tourists-with-guides', {
-          headers: {
-            'x-token': token,  // Send token in header
-          },
-        });
+            try {
+                const response = await axios.get('http://localhost:5000/api/Tourist/my-bookings', {
+                    headers: {
+                        Authorization: `Bearer ${token}`, // Attach token in Authorization header
+                    },
+                });
 
-        // Set tourists assigned to guides to state
-        setTourists(data);
-      } catch (err) {
-        console.error('Error fetching tourists with guides:', err);
-        setError('Error fetching tourists with guides: ' + (err.response?.data?.message || err.message));
-      }
-    };
+                // Check if the response has the bookings property
+                if (response.data && response.data.bookings) {
+                    setBookings(response.data.bookings); // Set bookings state
+                } else {
+                    setBookings([]); // Set to empty array if no bookings found
+                }
+            } catch (err) {
+                console.error('Error fetching bookings:', err);
+                setError('Failed to fetch bookings: ' + (err.response?.data?.message || err.message));
+            } finally {
+                setLoading(false); // Stop loading
+            }
+        };
 
-    fetchTouristDetails();  // Fetch tourists assigned to guides on component mount
-  }, []);
+        fetchBookings(); // Fetch bookings on component mount
+    }, []);
 
-  // Render error or loading message
-  if (error) {
-    return <div>{error}</div>;
-  }
+    if (loading) {
+        return <div>Loading your bookings...</div>; // Loading message
+    }
 
-  if (!tourists.length) {
-    return <div>No tourists assigned to guides.</div>;
-  }
+    if (error) {
+        return <div className="error-message">{error}</div>; // Display error message
+    }
 
-  return (
-    <div className="my-bookings-container">
-      <h2>Tourists Assigned to Guides</h2>
+    if (!bookings.length) {
+        return <div className="no-data-message">No bookings found.</div>; // Handle empty bookings
+    }
 
-      {/* Display tourists assigned to guides */}
-      {tourists.map((tourist) => (
-        <div key={tourist._id} className="tourist-details">
-          <h3>Tourist Details</h3>
-          <p><strong>Username:</strong> {tourist.username}</p>
-          <p><strong>Destination:</strong> {tourist.destination}</p>
-          <p><strong>Travel Dates:</strong> {tourist.dateFrom} to {tourist.dateTo}</p>
-          <p><strong>Preferred Transport:</strong> {tourist.preferredModeOfTransport}</p>
-          <p><strong>Travel Companion:</strong> {tourist.travelCompanion}</p>
-          <p><strong>Languages:</strong> {tourist.languagePreferences}</p>
-          <p><strong>Preferred Guide Type:</strong> {tourist.preferredGuideType}</p>
-
-          {/* Display guide details */}
-          {tourist.assignedGuide ? (
-            <div>
-              <h4>Assigned Guide</h4>
-              <p><strong>Guide Name:</strong> {tourist.assignedGuide.username}</p>
-              <p><strong>Location:</strong> {tourist.assignedGuide.location}</p>
-            </div>
-          ) : (
-            <p>No guide assigned for this tourist.</p>
-          )}
+    return (
+        <div className="my-bookings-container">
+            <h2>My Bookings</h2>
+            {bookings.map((booking) => (
+                <div key={booking.id} className="booking-details">
+                    <h3>Booking Details</h3>
+                    <p><strong>Username:</strong> {booking.username}</p>
+                    <p><strong>Email:</strong> {booking.email}</p>
+                    <p><strong>Destination:</strong> {booking.destination}</p>
+                    <p><strong>Travel Companion:</strong> {booking.travelCompanion}</p>
+                    <p><strong>Travel Dates:</strong> {new Date(booking.dateFrom).toLocaleDateString()} to {new Date(booking.dateTo).toLocaleDateString()}</p>
+                    <p><strong>Preferred Transport:</strong> {booking.preferredModeOfTransport.join(', ')}</p>
+                    <p><strong>Language Preferences:</strong> {booking.languagePreferences}</p>
+                    <p><strong>Preferred Guide Type:</strong> {booking.preferredGuideType}</p>
+                    {booking.assignedGuide ? (
+                        <div className="assigned-guide">
+                            <h4>Assigned Guide</h4>
+                            <p><strong>Guide Name:</strong> {booking.assignedGuide.username}</p>
+                            <p><strong>Location:</strong> {booking.assignedGuide.location}</p>
+                        </div>
+                    ) : (
+                        <p>No guide assigned.</p>
+                    )}
+                </div>
+            ))}
         </div>
-      ))}
-    </div>
-  );
+    );
 };
 
 export default MyBookings;

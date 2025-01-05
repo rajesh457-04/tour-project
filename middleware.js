@@ -1,32 +1,27 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-module.exports = function (req, res, next) {
-    try {
-        // Get token from the Authorization header
-        const authHeader = req.header('Authorization');
-        if (!authHeader || !authHeader.startsWith('Bearer ')) {
-            return res.status(401).json({ message: 'Unauthorized: Token not found' });
-        }
+const verifyToken = (req, res, next) => {
+  const authHeader = req.header('Authorization');
+  console.log('Authorization Header:', authHeader); // Log the header
 
-        // Extract the token
-        const token = authHeader.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ message: 'Unauthorized: Token not provided' });
-        }
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.log('Unauthorized: Token not found or malformed');
+    return res.status(401).json({ message: 'Unauthorized: Token not found or malformed' });
+  }
 
-        // Verify the token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const token = authHeader.split(' ')[1];
+  console.log('Token:', token); // Log the token
 
-        // Validate the decoded token
-        if (!decoded || !decoded.user || !decoded.user.id) {
-            return res.status(401).json({ message: 'Unauthorized: Invalid token payload' });
-        }
-
-        req.user = decoded.user; // Attach user object (with ID) to request
-        next(); // Pass control to the next middleware
-    } catch (err) {
-        console.error('JWT verification failed:', err.message);
-        return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) {
+      console.error('JWT verification failed:', err.message);
+      return res.status(401).json({ message: 'Unauthorized: Invalid or expired token' });
     }
+
+    req.user = decoded.user;
+    next();
+  });
 };
+
+module.exports = verifyToken;
