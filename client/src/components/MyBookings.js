@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import './MyBookings.css';
 
 const MyBookings = () => {
     const [bookings, setBookings] = useState([]); // Initialize bookings as an empty array

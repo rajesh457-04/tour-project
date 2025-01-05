@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './FindLocations.css'; // Import the CSS file
 
 const FindLocations = () => {
   const [location, setLocation] = useState('');
@@ -7,7 +8,7 @@ const FindLocations = () => {
   const [error, setError] = useState(null);
 
   const fetchLocationImages = async () => {
-    const UNSPLASH_ACCESS_KEY = 'TwBuYtRXYTyHdgF6xdyXKdxvpS6MSwz6otWBDEp2APM'; // Your Unsplash Access Key
+    const UNSPLASH_ACCESS_KEY = 'TwBuYtRXYTyHdgF6xdyXKdxvpS6MSwz6otWBDEp2APM'; // Replace with your Unsplash Access Key
     if (!location) {
       setError('Please enter a location.');
       return;
@@ -41,8 +42,9 @@ const FindLocations = () => {
           value={location} 
           onChange={(e) => setLocation(e.target.value)} 
           placeholder="Enter a location"
+          className="location-input" // Add class for styling
         />
-        <button onClick={fetchLocationImages}>Search</button>
+        <button onClick={fetchLocationImages} className="search-button">Search</button>
       </div>
 
       {error && <div className="error-message">{error}</div>}
@@ -51,12 +53,16 @@ const FindLocations = () => {
         {images.length > 0 ? (
           images.map((image) => (
             <div key={image.id} className="image-container">
-              <img src={image.urls.small} alt={image.alt_description} />
-              <p>{image.alt_description}</p>
+              <img 
+                src={image.urls.small} 
+                alt={image.alt_description || 'Image'}  // Ensuring a default alt text is provided
+                className="location-image" 
+              />
+              <p className="image-description">{image.alt_description}</p>
             </div>
           ))
         ) : (
-          <div>No images found for this location.</div>
+          <div className="no-images-message">No images found for this location.</div>
         )}
       </div>
     </div>
