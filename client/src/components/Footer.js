@@ -5,23 +5,27 @@ const Footer = () => {
   return (
     <footer className="footer py-4" style={{ background: 'none' }}>
       <div className="footer-image-container">
-        <img src="/images/bottom.png" alt="Footer Image" className="footer-image" />
+        <img 
+          src="/images/bottom.png" 
+          alt="Footer showing travel destinations" 
+          className="footer-image" 
+        />
         <div className="footer-text">
           <h5 className="mn">Explore the World with Travel Tour Guide</h5>
           <p>Connecting you with the best guides and experiences.</p>
           <ul className="list-inline social-icons">
             <li className="list-inline-item">
-              <a href="#" className="text-light">
+              <a href="https://www.example.com" className="text-light" target="_blank" rel="noopener noreferrer">
                 <span className="icon">🌐</span> {/* Custom icon */}
               </a>
             </li>
             <li className="list-inline-item">
-              <a href="#" className="text-light">
+              <a href="mailto:contact@example.com" className="text-light">
                 <span className="icon">📧</span> {/* Custom icon */}
               </a>
             </li>
             <li className="list-inline-item">
-              <a href="#" className="text-light">
+              <a href="tel:+1234567890" className="text-light">
                 <span className="icon">📱</span> {/* Custom icon */}
               </a>
             </li>
