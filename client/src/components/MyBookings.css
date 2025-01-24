@@ -9,6 +9,7 @@ body {
 }
 
 .my-bookings-container {
+    font-family: 'Merriweather', serif;
     width: 90%; /* Set width to 90% of the viewport */
     max-width: 1200px; /* Optional: Set a maximum width for larger screens */
     margin: 40px auto; /* Center the container with more space */
