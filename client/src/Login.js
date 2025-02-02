@@ -2,7 +2,7 @@ import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import { store } from './App'; // Assuming you have a context provider in App.js
 import { useNavigate } from 'react-router-dom';
-import './style5.css';
+import './login.css';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -63,6 +63,7 @@ const Login = () => {
                         type="email"
                         required
                         value={email}
+                        
                         onChange={(e) => setEmail(e.target.value)}
                     />
                     <label>Email</label>
