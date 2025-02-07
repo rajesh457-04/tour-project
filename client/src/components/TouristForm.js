@@ -71,12 +71,11 @@ const TouristForm = () => {
             localStorage.setItem('token', data.token);
 
             if (data.booking) {
-                // Include guide information in the alert message
                 alert(`Registration successful! Guide assigned: ${data.assignedGuide.username}, located in ${data.assignedGuide.location}.`);
-                navigate('/myprofile'); // Navigate to "My Bookings" if guide assigned
+                navigate('/myprofile');
             } else {
                 alert('Registration successful! No guides available.');
-                navigate('/myprofile'); // Navigate to dashboard if no guide is available
+                navigate('/myprofile');
             }
         } catch (err) {
             alert('Error: ' + (err.response?.data?.message || err.message));
@@ -87,8 +86,9 @@ const TouristForm = () => {
         switch (step) {
             case 1:
                 return (
-                    <div>
-                        <label>Step 1: Choose a Username</label>
+                    <div className="step-container">
+                        <h2>Step 1: Choose a Username</h2>
+                        <p>Create a unique username to get started with your travel journey.</p>
                         <input
                             type="text"
                             name="username"
@@ -102,8 +102,9 @@ const TouristForm = () => {
                 );
             case 2:
                 return (
-                    <div>
-                        <label>Step 2: Enter Your Email</label>
+                    <div className="step-container">
+                        <h2>Step 2: Enter Your Email</h2>
+                        <p>We'll use this email to keep you updated about your travel plans.</p>
                         <input
                             type="email"
                             name="email"
@@ -117,8 +118,9 @@ const TouristForm = () => {
                 );
             case 3:
                 return (
-                    <div className="form-step">
-                        <h3>Step 3: Choose Destination</h3>
+                    <div className="step-container">
+                        <h2>Step 3: Choose Destination</h2>
+                        <p>Select your dream destination from our curated list of amazing places.</p>
                         <select
                             name="destination"
                             value={formData.destination}
@@ -137,8 +139,9 @@ const TouristForm = () => {
                 );
             case 4:
                 return (
-                    <div>
-                        <label>Step 4: Travel Dates</label>
+                    <div className="step-container">
+                        <h2>Step 4: Travel Dates</h2>
+                        <p>Pick the dates for your adventure. Make sure your end date is after your start date!</p>
                         <input
                             type="date"
                             name="dateFrom"
@@ -158,49 +161,51 @@ const TouristForm = () => {
                         {errors.dateTo && <p className="error-message">{errors.dateTo}</p>}
                     </div>
                 );
-            case 5:
-                return (
-                    <div>
-                        <label>Step 5: Preferred Modes of Transport</label>
-                        <div>
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    name="preferredModeOfTransport"
-                                    value="Car"
-                                    checked={formData.preferredModeOfTransport.includes("Car")}
-                                    onChange={handleChange}
-                                />
-                                Car
-                            </label>
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    name="preferredModeOfTransport"
-                                    value="Bike"
-                                    checked={formData.preferredModeOfTransport.includes("Bike")}
-                                    onChange={handleChange}
-                                />
-                                Bike
-                            </label>
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    name="preferredModeOfTransport"
-                                    value="Bus"
-                                    checked={formData.preferredModeOfTransport.includes("Bus")}
-                                    onChange={handleChange}
-                                />
-                                Bus
-                            </label>
+                case 5:
+                    return (
+                      <div className="step-container">
+                        <h2>Step 5: Preferred Modes of Transport</h2>
+                        <p>Choose how you'd like to travel around your destination.</p>
+                        <div className="checkbox-group">
+                          
+                            <input
+                              type="checkbox"
+                              name="preferredModeOfTransport"
+                              value="Car"
+                              checked={formData.preferredModeOfTransport.includes("Car")}
+                              onChange={handleChange}
+                            />
+                            Car
+                          
+                          
+                            <input
+                              type="checkbox"
+                              name="preferredModeOfTransport"
+                              value="Bike"
+                              checked={formData.preferredModeOfTransport.includes("Bike")}
+                              onChange={handleChange}
+                            />
+                            Bike
+                         
+                          
+                            <input
+                              type="checkbox"
+                              name="preferredModeOfTransport"
+                              value="Bus"
+                              checked={formData.preferredModeOfTransport.includes("Bus")}
+                              onChange={handleChange}
+                            />
+                            Bus
+                         
                         </div>
                         {errors.preferredModeOfTransport && <p className="error-message">{errors.preferredModeOfTransport}</p>}
-                    </div>
-                );
+                      </div>
+                    );
             case 6:
                 return (
-                    <div>
-                        <label>Step 6: Travel Companion</label>
+                    <div className="step-container">
+                        <h2>Step 6: Travel Companion</h2>
+                        <p>Who will be joining you on this exciting journey?</p>
                         <select
                             name="travelCompanion"
                             value={formData.travelCompanion}
@@ -219,8 +224,9 @@ const TouristForm = () => {
                 );
             case 7:
                 return (
-                    <div>
-                        <label>Step 7: Language Preferences</label>
+                    <div className="step-container">
+                        <h2>Step 7: Language Preferences</h2>
+                        <p>Let us know your preferred languages for a smoother experience.</p>
                         <input
                             type="text"
                             name="languagePreferences"
@@ -234,8 +240,9 @@ const TouristForm = () => {
                 );
             case 8:
                 return (
-                    <div>
-                        <label>Step 8: Preferred Guide Type</label>
+                    <div className="step-container">
+                        <h2>Step 8: Preferred Guide Type</h2>
+                        <p>Choose the type of guide you'd feel most comfortable with.</p>
                         <select
                             name="preferredGuideType"
                             value={formData.preferredGuideType}
@@ -256,7 +263,12 @@ const TouristForm = () => {
     };
 
     return (
-        <div className="tourist-form">
+        <div className="form">
+            <div className="form-header">
+                <h1>Plan Your Dream Trip</h1>
+                <p>Fill out the form below to create your personalized travel plan.</p>
+                <img src="/images/bus.webp" alt="Travel Adventure" className="header-image" />
+            </div>
             <form onSubmit={handleSubmit}>
                 {renderStep()}
 

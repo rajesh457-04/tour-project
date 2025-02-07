@@ -37,7 +37,7 @@ const GuideForm = () => {
         try {
             const response = await axios.post('http://localhost:5000/api/guide/guide-register', formData);
             alert(response.data.message);
-            // Optionally reset the form after successful registration
+            // Reset form after successful registration
             setFormData({
                 username: '',
                 email: '',
@@ -56,13 +56,18 @@ const GuideForm = () => {
     };
 
     return (
-        <div className="form-container">
-            <h2 className="form-title">Become a Tour Guide</h2>
+        <div className="form">
+            <div className="form-header">
+                <h1>Become a Tour Guide</h1>
+                <p>Join our platform and help travelers explore the world with your expertise.</p>
+                <img src="/images/g1.jpeg" alt="Guide Adventure" className="header-image" />
+            </div>
 
             {/* Step 1: Username */}
             {step === 1 && (
-                <div className="form-step">
-                    <p className="step-description">Let's start with your name:</p>
+                <div className="step-container">
+                    <h2>Step 1: Your Full Name</h2>
+                    <p>Let's start with your name. This will be displayed to travelers.</p>
                     <input
                         type="text"
                         name="username"
@@ -72,16 +77,17 @@ const GuideForm = () => {
                         required
                         className="form-input"
                     />
-                    <div className="button-container">
-                        <button className="next-button" onClick={handleNextStep}>Next</button>
+                    <div className="form-navigation">
+                        <button type="button" className="next-button" onClick={handleNextStep}>Next</button>
                     </div>
                 </div>
             )}
 
             {/* Step 2: Email */}
             {step === 2 && (
-                <div className="form-step">
-                    <p className="step-description">What is your email address?</p>
+                <div className="step-container">
+                    <h2>Step 2: Your Email Address</h2>
+                    <p>We'll use this email to contact you about your guide profile.</p>
                     <input
                         type="email"
                         name="email"
@@ -91,17 +97,18 @@ const GuideForm = () => {
                         required
                         className="form-input"
                     />
-                    <div className="button-container">
-                        <button className="prev-button" onClick={handlePreviousStep}>Previous</button>
-                        <button className="next-button" onClick={handleNextStep}>Next</button>
+                    <div className="form-navigation">
+                        <button type="button" className="prev-button" onClick={handlePreviousStep}>Previous</button>
+                        <button type="button" className="next-button" onClick={handleNextStep}>Next</button>
                     </div>
                 </div>
             )}
 
             {/* Step 3: Phone */}
             {step === 3 && (
-                <div className="form-step">
-                    <p className="step-description">What's your phone number?</p>
+                <div className="step-container">
+                    <h2>Step 3: Your Phone Number</h2>
+                    <p>Travelers may need to contact you directly. Please provide your phone number.</p>
                     <input
                         type="tel"
                         name="phone"
@@ -111,17 +118,18 @@ const GuideForm = () => {
                         required
                         className="form-input"
                     />
-                    <div className="button-container">
-                        <button className="prev-button" onClick={handlePreviousStep}>Previous</button>
-                        <button className="next-button" onClick={handleNextStep}>Next</button>
+                    <div className="form-navigation">
+                        <button type="button" className="prev-button" onClick={handlePreviousStep}>Previous</button>
+                        <button type="button" className="next-button" onClick={handleNextStep}>Next</button>
                     </div>
                 </div>
             )}
 
             {/* Step 4: Guide Experience */}
             {step === 4 && (
-                <div className="form-step">
-                    <p className="step-description">How many years of guiding experience do you have?</p>
+                <div className="step-container">
+                    <h2>Step 4: Your Experience</h2>
+                    <p>How many years of experience do you have as a tour guide?</p>
                     <input
                         type="text"
                         name="guideExperience"
@@ -131,17 +139,18 @@ const GuideForm = () => {
                         required
                         className="form-input"
                     />
-                    <div className="button-container">
-                        <button className="prev-button" onClick={handlePreviousStep}>Previous</button>
- <button className="next-button" onClick={handleNextStep}>Next</button>
+                    <div className="form-navigation">
+                        <button type="button" className="prev-button" onClick={handlePreviousStep}>Previous</button>
+                        <button type="button" className="next-button" onClick={handleNextStep}>Next</button>
                     </div>
                 </div>
             )}
 
             {/* Step 5: Preferred Mode of Transport */}
             {step === 5 && (
-                <div className="form-step">
-                    <p className="step-description">What is your preferred mode of transport? (Select multiple if applicable)</p>
+                <div className="step-container">
+                    <h2>Step 5: Transport Preferences</h2>
+                    <p>What modes of transport are you comfortable using with travelers?</p>
                     <div className="checkbox-group">
                         {["Car", "Bike", "Bus", "Train", "Flight"].map((transport) => (
                             <label key={transport}>
@@ -156,17 +165,18 @@ const GuideForm = () => {
                             </label>
                         ))}
                     </div>
-                    <div className="button-container">
-                        <button className="prev-button" onClick={handlePreviousStep}>Previous</button>
-                        <button className="next-button" onClick={handleNextStep}>Next</button>
+                    <div className="form-navigation">
+                        <button type="button" className="prev-button" onClick={handlePreviousStep}>Previous</button>
+                        <button type="button" className="next-button" onClick={handleNextStep}>Next</button>
                     </div>
                 </div>
             )}
 
             {/* Step 6: Languages Spoken */}
             {step === 6 && (
-                <div className="form-step">
-                    <p className="step-description">What languages do you speak?</p>
+                <div className="step-container">
+                    <h2>Step 6: Languages You Speak</h2>
+                    <p>Which languages can you communicate in with travelers?</p>
                     <input
                         type="text"
                         name="languagesSpoken"
@@ -176,17 +186,18 @@ const GuideForm = () => {
                         required
                         className="form-input"
                     />
-                    <div className="button-container">
-                        <button className="prev-button" onClick={handlePreviousStep}>Previous</button>
-                        <button className="next-button" onClick={handleNextStep}>Next</button>
+                    <div className="form-navigation">
+                        <button type="button" className="prev-button" onClick={handlePreviousStep}>Previous</button>
+                        <button type="button" className="next-button" onClick={handleNextStep}>Next</button>
                     </div>
                 </div>
             )}
 
             {/* Step 7: Guide Type */}
             {step === 7 && (
-                <div className="form-step">
-                    <p className="step-description">What is your preferred guide type?</p>
+                <div className="step-container">
+                    <h2>Step 7: Your Guide Type</h2>
+                    <p>What type of guide are you? This helps us match you with the right travelers.</p>
                     <select
                         name="guideType"
                         value={formData.guideType}
@@ -199,17 +210,18 @@ const GuideForm = () => {
                         <option value="Female">Female</option>
                         <option value="No Preference">No Preference</option>
                     </select>
-                    <div className="button-container">
-                        <button className="prev-button" onClick={handlePreviousStep}>Previous</button>
-                        <button className="next-button" onClick={handleNextStep}>Next</button>
+                    <div className="form-navigation">
+                        <button type="button" className="prev-button" onClick={handlePreviousStep}>Previous</button>
+                        <button type="button" className="next-button" onClick={handleNextStep}>Next</button>
                     </div>
                 </div>
             )}
 
             {/* Step 8: Location */}
             {step === 8 && (
-                <div className="form-step">
-                    <p className="step-description">Select your location:</p>
+                <div className="step-container">
+                    <h2>Step 8: Your Location</h2>
+                    <p>Where are you based? This helps travelers find guides in their desired location.</p>
                     <select
                         name="location"
                         value={formData.location}
@@ -224,9 +236,9 @@ const GuideForm = () => {
                         <option value="Bangalore">Bangalore</option>
                         <option value="Chennai">Chennai</option>
                     </select>
-                    <div className="button-container">
-                        <button className="prev-button" onClick={handlePreviousStep}>Previous</button>
-                        <button className="submit-button" onClick={handleSubmit}>Register</button>
+                    <div className="form-navigation">
+                        <button type="button" className="prev-button" onClick={handlePreviousStep}>Previous</button>
+                        <button type="button" className="submit-button" onClick={handleSubmit}>Register</button>
                     </div>
                 </div>
             )}
