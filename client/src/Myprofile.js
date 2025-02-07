@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { store } from './App'; // Import context
 import ImageCarousel from './components/ImageCarousel'; // Assume you have this
@@ -8,6 +8,7 @@ import './MyProfile.css'; // Import CSS
 const MyProfile = () => {
     const [token, setToken] = useContext(store); // Get token from context
     const navigate = useNavigate();
+    const [showNotification, setShowNotification] = useState(false); // Manage notification visibility
 
     useEffect(() => {
         // Check for token in localStorage
@@ -29,8 +30,27 @@ const MyProfile = () => {
         navigate('/login');
     };
 
+    const toggleNotification = () => {
+        setShowNotification(prev => !prev); // Toggle notification display
+    };
+
     return (
         <div className="my-profile">
+            {/* Menu Button with Three Lines Icon */}
+            <div className="menu-icon" onClick={toggleNotification}>
+                <span className="line"></span>
+                <span className="line"></span>
+                <span className="line"></span>
+            </div>
+
+            {/* Conditional Notification Icon */}
+            {showNotification && (
+                <div className="notification-icon">
+                    <span className="badge">1</span> {/* Example of unread notification */}
+                    <span className="icon">🔔</span>
+                </div>
+            )}
+
             {/* Gold line shadow below the navbar */}
             <nav className="profile-nav">
                 <ul>
@@ -44,6 +64,7 @@ const MyProfile = () => {
                 </ul>
             </nav>
             <div className="gold-shadow"></div>
+
             {/* Profile Content */}
             <section className="profile-content">
                 <ImageCarousel />

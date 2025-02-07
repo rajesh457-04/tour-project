@@ -7,7 +7,10 @@ html, body, #root {
   color: white;
 }
 
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@400,500,600,700&display=swap');
+
 .my-profile {
+  font-family: 'Clash Display', sans-serif;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -37,7 +40,7 @@ h1 {
   justify-content: space-around;
   list-style-type: none;
   padding: 0;
-  background-color: #333; /* Dark background for the nav */
+  background-color: #333;
   margin-bottom: 20px;
   border-radius: 5px;
 }
@@ -56,22 +59,22 @@ h1 {
 }
 
 .profile-nav ul li a:hover {
-  background-color: #555; /* Slight hover effect */
+  background-color: #555;
   color: white;
 }
 
 .profile-nav ul li .logout-button:hover {
-  background-color: #555; /* Slight hover effect */
+  background-color: #555;
   color: white;
 }
-
 
 /* Profile Content */
 .profile-content {
   padding: 20px;
   text-align: center;
 }
-.profile-nav ul li .logout-button{
+
+.profile-nav ul li .logout-button {
   background: none;
   border: none;
   display: block;
@@ -80,6 +83,8 @@ h1 {
   text-decoration: none;
   font-weight: bold;
 }
+
+/* Card Section */
 .card-container {
   display: flex;
   justify-content: space-around;
@@ -88,17 +93,17 @@ h1 {
 
 .card {
   background: none; 
-  border: 2px solid #ff6700;/* Dark background for the card */
-  color: gold; /* Text color */
+  border: 2px solid #ff6700;
+  color: gold;
   border-radius: 10px;
   padding: 20px;
-  width: 500px; /* Adjust width as needed */
+  width: 500px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
   transition: transform 0.3s;
 }
 
 .card:hover {
-  transform: translateY(-5px); /* Lift effect on hover */
+  transform: translateY(-5px);
 }
 
 .card h2 {
@@ -107,12 +112,12 @@ h1 {
 
 .card p {
   margin: 0 0 15px 0;
-  font-size: 0.9em; /* Smaller font for the description */
+  font-size: 0.9em;
 }
 
 .card button {
-  background-color: #ff6700; /* Button color */
-  color: white; /* Text color */
+  background-color: #ff6700;
+  color: white;
   border: none;
   padding: 10px;
   border-radius: 5px;
@@ -121,5 +126,79 @@ h1 {
 }
 
 .card button:hover {
-  background-color: #e55b00; /* Darker shade on hover */
+  background-color: #e55b00;
+}
+
+/* Style for the Menu Button (Hamburger Icon) */
+.menu-icon {
+  position: fixed;
+  top: 20px;
+  right: 50px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.menu-icon .line {
+  display: block;
+  width: 30px;
+  height: 4px;
+  background-color: #fff;
+  margin: 6px 0;
+  transition: 0.4s;
+}
+
+/* Style for the Notification Icon */
+.notification-icon {
+  position: fixed;
+  top: 70px; /* Positioned below the hamburger menu */
+  right: 40px;
+  background-color: #eeede9;
+  color: white;
+  border-radius: 50%;
+  padding: 12px; /* Increased padding to make it round */
+  cursor: pointer;
+  z-index: 1000;
+  transition: background-color 0.3s;
+  display: flex; /* Use flexbox */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
+  width: 40px; /* Set a fixed width */
+  height: 40px; /* Set a fixed height */
+}
+
+.notification-icon .badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  padding: 5px;
+  font-size: 12px;
+}
+
+.notification-icon .icon {
+  font-size: 20px;
+  z-index: 1000;
+  margin-left: -7px;
+}
+/* Optional Hover Effects for Notification */
+.notification-icon:hover {
+  background-color: #140f06;
+}
+
+
+
+/* Optional styling for when the notification is clicked */
+.notification-content {
+  position: fixed;
+  top: 100px; /* Space it further down */
+  right: 20px;
+  background-color: #333;
+  color: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  z-index: 999;
+  width: 250px;
 }
